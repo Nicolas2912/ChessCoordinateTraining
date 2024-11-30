@@ -2,7 +2,7 @@
 
 A dynamic, interactive application designed to help chess players master board coordinates through an engaging practice interface. This trainer combines intuitive gameplay with comprehensive statistical tracking to enhance learning and monitor progress.
 
-![Chess Coordinates Trainer](assets/UI_example_v01.png)
+![Chess Coordinates Trainer](assets/images/UI_example_v01.png)
 
 ## 🎯 Features
 
