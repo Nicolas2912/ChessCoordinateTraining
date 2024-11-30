@@ -9,6 +9,17 @@ from tkinter import filedialog, messagebox
 
 
 class ChessCoordinatesGame:
+    """
+    A comprehensive chess coordinates training application implementing an interactive GUI interface.
+
+    This class provides a complete training environment for learning and practicing chess board coordinates,
+    featuring multiple training modes, statistical tracking, and performance visualization.
+
+    Attributes:
+        GRID_SIZE (int): The size of the chess board (8x8).
+        TILE_SIZE (int): The pixel size of each board square.
+        COLORS (dict): Color scheme configuration for the UI elements.
+    """
     # Constants
     GRID_SIZE = 8
     TILE_SIZE = 60
@@ -24,6 +35,13 @@ class ChessCoordinatesGame:
     }
 
     def __init__(self):
+        """
+        Initialize the Chess Coordinates Game with default settings and UI components.
+
+        Sets up the main application window, initializes game state variables, configures statistics
+        tracking, and establishes the UI layout including the chessboard, control panel, and
+        performance graphs.
+        """
         self.root = tk.Tk()
         self.root.title("Chessboard Coordinates Practice")
 
@@ -56,7 +74,13 @@ class ChessCoordinatesGame:
         self.draw_chessboard()
 
     def setup_ui(self):
-        """Initialize all UI components"""
+        """
+        Initialize and configure all primary UI components of the application.
+
+        Creates and organizes the main application frames, configures the base styling,
+        and establishes the foundational layout structure. Handles the setup of the game frame,
+        right frame, and initial UI state.
+        """
         self.root.configure(bg=self.COLORS['background'])
         self.root.option_add('*Font', 'Helvetica 10')
 
@@ -94,7 +118,13 @@ class ChessCoordinatesGame:
         self.perspective_label.pack(pady=5)
 
     def setup_coordinate_display(self):
-        """Setup the coordinate display frame and label"""
+        """
+        Create and configure the coordinate display component.
+
+        Establishes a dedicated frame for displaying current coordinates during gameplay,
+        including styling configuration and initial state setup. The display shows the
+        target coordinate during active games and appropriate status messages otherwise.
+        """
         self.coord_display_frame = tk.Frame(
             self.game_frame,
             width=self.GRID_SIZE * self.TILE_SIZE + 100,
@@ -118,7 +148,17 @@ class ChessCoordinatesGame:
         self.coord_label.pack(expand=True, fill="both")
 
     def setup_matplotlib(self):
-        """Initialize matplotlib figures and graphs"""
+        """
+        Initialize and configure the matplotlib visualization components.
+
+        Creates four subplot areas for different performance metrics:
+        - Score history
+        - Accuracy tracking
+        - Click distribution
+        - Response time analysis
+
+        Configures base styling and integrates the visualization canvas into the UI.
+        """
         self.fig = plt.figure(figsize=(8, 6))
         plt.subplots_adjust(hspace=0.5, wspace=0.3)
 
@@ -141,7 +181,16 @@ class ChessCoordinatesGame:
         self.canvas_widget.pack(expand=True)
 
     def setup_control_panel(self):
-        """Setup the control panel with all game controls and statistics"""
+        """
+        Create and organize the game control panel interface.
+
+        Establishes three main component groups:
+        - Statistics display frame
+        - Timer control elements
+        - Game control buttons
+
+        Handles layout management and initial state configuration for all control elements.
+        """
         # Create frames
         self.control_panel = tk.Frame(self.right_frame, bg=self.COLORS['background'])
         self.control_panel.pack(side="bottom", pady=10)
@@ -162,7 +211,17 @@ class ChessCoordinatesGame:
         self.setup_game_controls()
 
     def setup_stat_labels(self):
-        """Setup all statistics labels"""
+        """
+        Initialize and configure the statistical display labels.
+
+        Creates and styles labels for:
+        - Correct/incorrect moves
+        - Accuracy percentage
+        - Average response time
+        - Current score
+
+        Configures consistent styling and positioning for all statistical elements.
+        """
         self.correct_label = tk.Label(self.stats_frame, text="Correct: 0")
         self.wrong_label = tk.Label(self.stats_frame, text="Wrong: 0")
         self.accuracy_label = tk.Label(self.stats_frame, text="Accuracy: 0%")
@@ -186,7 +245,16 @@ class ChessCoordinatesGame:
         )
 
     def setup_game_controls(self):
-        """Setup game control buttons and timer"""
+        """
+        Initialize and configure the game control interface components.
+
+        Sets up:
+        - Game duration slider (5-60 seconds)
+        - Timer display
+        - Control buttons
+
+        Establishes event bindings and initial states for all control elements.
+        """
         # Create duration slider
         self.duration_var = tk.IntVar(value=30)
         self.duration_slider = tk.Scale(
@@ -215,7 +283,18 @@ class ChessCoordinatesGame:
         self.create_control_buttons()
 
     def create_control_buttons(self):
-        """Create and style all control buttons"""
+        """
+        Create and configure the game control button interface.
+
+        Initializes buttons for:
+        - Game start/stop
+        - Board orientation
+        - Coordinate visibility
+        - Statistics management
+        - Application exit
+
+        Applies consistent styling and positioning to all button elements.
+        """
         buttons = [
             {"text": "Start", "command": self.start_timer, "color": self.COLORS['accent']},
             {"text": "Flip Board", "command": self.flip_board, "color": self.COLORS['accent']},
@@ -241,13 +320,30 @@ class ChessCoordinatesGame:
             button.pack(side="left", padx=2)
 
     def exit_program(self):
-        """Exit the program with confirmation"""
+        """
+        Handle the application exit process with user confirmation.
+
+        Displays a confirmation dialog before closing the application to prevent
+        accidental exits. Properly closes the application window and terminates
+        the program if confirmed.
+        """
         if messagebox.askokcancel("Exit", "Are you sure you want to exit?"):
             self.root.quit()
             self.root.destroy()
 
     def save_stats(self):
-        """Save game statistics to a JSON file"""
+        """
+        Export current game statistics to a JSON file.
+
+        Saves comprehensive game statistics including:
+        - Score history
+        - Accuracy metrics
+        - Response times
+        - Click distribution
+        - Timestamp
+
+        Handles file selection dialog and error management during the save process.
+        """
         if not any([self.score_history, self.accuracy_history, self.correct_clicks_history]):
             messagebox.showwarning("No Data", "There are no statistics to save yet. Play some games first!")
             return
@@ -280,7 +376,17 @@ class ChessCoordinatesGame:
                 messagebox.showerror("Error", f"Failed to save statistics: {str(e)}")
 
     def load_stats(self):
-        """Load game statistics from a JSON file"""
+        """
+        Import previously saved game statistics from a JSON file.
+
+        Loads and integrates:
+        - Historical performance data
+        - Statistical metrics
+        - Timestamps
+
+        Updates all relevant displays and graphs with the loaded data.
+        Includes error handling and validation of imported data.
+        """
         file_path = filedialog.askopenfilename(
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             title="Load Game Statistics"
@@ -313,7 +419,17 @@ class ChessCoordinatesGame:
 
     # Game Logic Methods
     def draw_chessboard(self):
-        """Draw the chessboard with current perspective"""
+        """
+        Render the chessboard interface with current perspective settings.
+
+        Creates a complete chess board visualization including:
+        - Alternating square colors
+        - Board orientation (white/black perspective)
+        - Coordinate labels
+        - Border styling
+
+        Handles proper square coloring and coordinate mapping based on current perspective.
+        """
         self.canvas.delete("all")
 
         # Add background
@@ -354,7 +470,17 @@ class ChessCoordinatesGame:
             )
 
     def flip_board(self):
-        """Flip the board perspective"""
+        """
+         Toggle the board perspective between white and black sides.
+
+         Updates:
+         - Board orientation
+         - Coordinate labels
+         - Perspective indicator
+         - Active coordinate references
+
+         Maintains game state consistency during perspective changes.
+         """
         self.is_white_perspective = not self.is_white_perspective
         self.perspective_label.config(
             text=f"View: {'White' if self.is_white_perspective else 'Black'}'s perspective"
@@ -365,7 +491,17 @@ class ChessCoordinatesGame:
             self.toggle_coordinates()
 
     def toggle_coordinates(self):
-        """Toggle coordinate visibility on the board"""
+        """
+        Toggle the visibility of coordinate labels on the chess board.
+
+        Manages:
+        - Coordinate text display/hiding
+        - Text color adaptation for visibility
+        - Coordinate positioning
+        - State tracking
+
+        Handles proper coordinate orientation based on current board perspective.
+        """
         if self.coordinates_visible:
             for text_id in self.coordinates_text.values():
                 self.canvas.delete(text_id)
@@ -388,7 +524,17 @@ class ChessCoordinatesGame:
         self.coordinates_visible = not self.coordinates_visible
 
     def get_coordinate_text(self, col, row):
-        """Get the correct coordinate text based on perspective"""
+        """
+        Generate the algebraic notation for a given board position.
+
+        Args:
+            col (int): Column index (0-7)
+            row (int): Row index (0-7)
+
+        Returns:
+            str: Algebraic notation (e.g., 'A1', 'H8') corresponding to the position,
+                 adjusted for current board perspective.
+        """
         if self.is_white_perspective:
             letter = chr(ord('A') + col)
             number = self.GRID_SIZE - row
@@ -398,7 +544,17 @@ class ChessCoordinatesGame:
         return f"{letter}{number}"
 
     def generate_random_coordinate(self):
-        """Generate a random coordinate and return its notation and screen position"""
+        """
+        Generate a random chess board coordinate for practice.
+
+        Returns:
+            tuple: Contains:
+                - str: Algebraic notation (e.g., 'E4')
+                - int: Screen column index
+                - int: Screen row index
+
+        Generates coordinates accounting for current board perspective.
+        """
         file = random.randint(0, 7)
         rank = random.randint(1, 8)
         algebraic = f"{chr(ord('A') + file)}{rank}"
@@ -407,14 +563,31 @@ class ChessCoordinatesGame:
         return algebraic, screen_col, screen_row
 
     def update_random_coordinate(self):
-        """Update the display with a new random coordinate"""
+        """
+        Update the display with a new random coordinate target.
+
+        Generates a new random coordinate, updates the display, and
+        records the timestamp for response time tracking. Maintains
+        consistency with current board perspective.
+        """
         coord, col, row = self.generate_random_coordinate()
         self.current_coordinate = (col, row)
         self.coord_label.config(text=coord)
         self.last_coordinate_time = time.time()
 
     def check_coordinate(self, event):
-        """Handle mouse clicks on the chessboard"""
+        """
+        Validate user clicks against the target coordinate.
+
+        Args:
+            event: Mouse click event containing click coordinates
+
+        Processes click events during active games, updating:
+        - Score tracking
+        - Response time statistics
+        - Accuracy metrics
+        - Game progression
+        """
         if self.current_coordinate is None or not self.is_game_active:
             return
 
@@ -438,7 +611,17 @@ class ChessCoordinatesGame:
             self.wrong_clicks += 1
 
     def update_stats(self):
-        """Update all statistics labels with current values"""
+        """
+        Refresh all statistical displays with current game metrics.
+
+        Updates display of:
+        - Correct/incorrect moves
+        - Accuracy percentage
+        - Average response time
+        - Current score
+
+        Calculates and formats all metrics based on current game state.
+        """
         total_clicks = self.correct_clicks + self.wrong_clicks
         accuracy = (self.correct_clicks / total_clicks * 100) if total_clicks > 0 else 0
         avg_time = (self.total_response_time / self.correct_clicks) if self.correct_clicks > 0 else 0
@@ -450,8 +633,18 @@ class ChessCoordinatesGame:
         self.score_label.config(text=f"Score: {self.calculate_score()}")
 
     def calculate_score(self):
-        """Calculate the current score based on correct clicks"""
-        """Calculate the player's score based on performance"""
+        """
+        Calculate the current game score based on performance metrics.
+
+        Returns:
+            int: Calculated score incorporating:
+                - Base points for correct moves
+                - Accuracy bonuses
+                - Speed bonuses
+                - Penalty deductions
+
+        Implements sophisticated scoring algorithm accounting for multiple performance factors.
+        """
         if self.correct_clicks == 0:
             return 0
 
@@ -472,7 +665,17 @@ class ChessCoordinatesGame:
         return int(base_score + accuracy_bonus + speed_bonus - penalties)
 
     def show_final_results(self):
-        """Display the final results window with statistics"""
+        """
+        Display comprehensive game results and update performance history.
+
+        Creates a detailed results window showing:
+        - Final score
+        - Accuracy metrics
+        - Response time statistics
+        - Performance graphs
+
+        Updates historical tracking and refreshes all statistical visualizations.
+        """
         # Calculate final statistics
         final_score = self.calculate_score()
         total_clicks = self.correct_clicks + self.wrong_clicks
@@ -508,7 +711,17 @@ class ChessCoordinatesGame:
             tk.Label(result_window, text=f"Slowest Response: {self.slowest_response:.2f}s", font=("Arial", 12)).pack()
 
     def update_score_graph(self):
-        """Update all statistics graphs"""
+        """
+        Refresh all performance visualization graphs with current data.
+
+        Updates four main visualizations:
+        - Score progression
+        - Accuracy trends
+        - Click distribution
+        - Response time analysis
+
+        Handles graph styling, scaling, and layout optimization.
+        """
         # Clear all subplots
         self.ax_score.clear()
         self.ax_accuracy.clear()
@@ -564,7 +777,17 @@ class ChessCoordinatesGame:
         self.canvas_graph.draw()
 
     def start_timer(self):
-        """Start the game timer and reset statistics"""
+        """
+        Initialize and begin a new practice session.
+
+        Manages:
+        - Game state reset
+        - Timer initialization
+        - Statistics reset
+        - Session start sequence
+
+        Implements countdown timer and session completion handling.
+        """
         # Reset all statistics
         self.correct_clicks = 0
         self.wrong_clicks = 0
@@ -595,6 +818,12 @@ class ChessCoordinatesGame:
         update_timer()
 
     def run(self):
+        """
+        Start the main application event loop.
+
+        Initializes the tkinter main loop and begins processing user interactions.
+        This method blocks until the application window is closed.
+        """
         self.root.mainloop()
 
 
