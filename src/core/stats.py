@@ -126,66 +126,24 @@ class PerformanceTracker:
         self.axes: Dict[str, Axes] = {}
 
     def initialize_visualization(self, figure: Figure) -> None:
-        """
-        Sets up the matplotlib figure and axes for visualization with clean, empty subplots.
-        """
+        """Sets up the matplotlib figure and axes for visualization."""
         self.figure = figure
+        plt.subplots_adjust(hspace=0.2, wspace=0.1)
 
-        # Configure figure to remove extra space around plots
-        self.figure.set_facecolor('white')
-
-        # Create GridSpec with appropriate spacing
-        gs = figure.add_gridspec(
-            2, 2,
-            height_ratios=[1, 1],
-            width_ratios=[1, 1],
-            top=0.9,
-            bottom=0.15,
-            hspace=0.4,
-            wspace=0.3
-        )
-
-        # Define titles and labels for each subplot
-        plots_config = {
-            'score': ('Score History', 'Score'),
-            'accuracy': ('Accuracy History', 'Accuracy (%)'),
-            'clicks': ('Clicks History', 'Number of Clicks'),
-            'time': ('Response Times', 'Time (seconds)')
+        # Create subplots
+        self.axes = {
+            'score': plt.subplot(221),
+            'accuracy': plt.subplot(222),
+            'clicks': plt.subplot(223),
+            'time': plt.subplot(224)
         }
 
-        # Create and configure subplots
-        self.axes = {}
-        for idx, (name, (title, ylabel)) in enumerate(plots_config.items()):
-            row, col = divmod(idx, 2)
-            ax = figure.add_subplot(gs[row, col])
-            self.axes[name] = ax
-
-            # Remove all ticks and labels
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
-
-            # Configure axis labels and title
-            ax.set_title(title, pad=15)
-            ax.set_xlabel('Games')
-            ax.set_ylabel(ylabel)
-
-            # Add very light grid
-            ax.grid(True, linestyle='--', alpha=0.5)
-
-            # Show only the frame by making all spines visible and black
-            for spine in ax.spines.values():
-                spine.set_visible(True)
-                spine.set_color('black')
-                spine.set_linewidth(1.0)
-
-            # Set limits to remove the 0.0-1.0 scale
-            ax.set_xlim(-0.1, 5)  # Adjust these values as needed
-            ax.set_ylim(-0.1, 5)  # Adjust these values as needed
-
-        # Apply tight layout
-        self.figure.tight_layout()
+        # Setup base styling for all subplots
+        for ax in self.axes.values():
+            ax.tick_params(labelsize=8)
+            ax.title.set_fontsize(10)
+            ax.xaxis.label.set_fontsize(8)
+            ax.yaxis.label.set_fontsize(8)
 
     def record_session(self, score: int, session: GameSession) -> None:
         """
@@ -195,128 +153,91 @@ class PerformanceTracker:
             score: Final score for the session
             session: GameSession object containing session statistics
         """
+        stats = session.get_session_stats()
         self.score_history.append(score)
-        self.accuracy_history.append(session.calculate_accuracy())
-        self.correct_clicks_history.append(session.correct_clicks)
-        self.wrong_clicks_history.append(session.wrong_clicks)
-        self.avg_time_history.append(session.calculate_avg_response_time())
-        self.fastest_time_history.append(
-            session.fastest_response if session.fastest_response != float('inf') else 0.0
-        )
-        self.slowest_time_history.append(session.slowest_response)
+        self.accuracy_history.append(stats['accuracy'])
+        self.correct_clicks_history.append(stats['correct'])
+        self.wrong_clicks_history.append(stats['wrong'])
+        self.avg_time_history.append(stats['avg_time'])
+        self.fastest_time_history.append(stats['fastest_response'])
+        self.slowest_time_history.append(stats['slowest_response'])
 
-    def update_visualizations(self):
+    def update_visualizations(self) -> None:
         """Updates all performance visualization graphs with current data."""
-        if not self.score_history:
+        if not self.figure or not self.score_history:
             return
 
-        x_labels = [f"Game {i + 1}" for i in range(len(self.score_history))]
-        x_positions = range(len(x_labels))
-
         # Clear all subplots
-        for ax in self.axes.values():
+        for ax in [self.axes['score'], self.axes['accuracy'],
+                  self.axes['clicks'], self.axes['time']]:
             ax.clear()
 
-        # Plot score history
-        self.axes['score'].plot(x_positions, self.score_history, 'b-o', label='Score')
-        for i, score in enumerate(self.score_history):
-            self.axes['score'].text(i, score, f'{score}', ha='center', va='bottom')
+        x_labels = [f"Game {i+1}" for i in range(len(self.score_history))]
 
-        # Set appropriate y-axis ticks for score
-        min_score = min(self.score_history)
-        max_score = max(self.score_history)
-        score_range = max_score - min_score
-        self.axes['score'].set_ylim(min_score - 0.1 * score_range, max_score + 0.1 * score_range)
-        self.axes['score'].set_yticks(self.score_history)
-        self.axes['score'].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x)}'))
+        # Score History
+        self.axes['score'].plot(x_labels, self.score_history, 'b-o')
+        self._add_value_labels(self.axes['score'], x_labels, self.score_history)
+        self.axes['score'].set_title('Score History')
+        self.axes['score'].set_xlabel('Games')
+        self.axes['score'].set_ylabel('Score')
+        self.axes['score'].grid(True, linestyle='--', alpha=0.7)
+        self.axes['score'].tick_params(axis='x', rotation=45)
 
-        # Plot accuracy history
-        self.axes['accuracy'].plot(x_positions, self.accuracy_history, 'g-o', label='Accuracy')
-        for i, acc in enumerate(self.accuracy_history):
-            self.axes['accuracy'].text(i, acc, f'{acc:.1f}%', ha='center', va='bottom')
+        # Accuracy History
+        self.axes['accuracy'].plot(x_labels, self.accuracy_history, 'g-o')
+        self._add_value_labels(self.axes['accuracy'], x_labels, self.accuracy_history, '{:.1f}%')
+        self.axes['accuracy'].set_title('Accuracy History')
+        self.axes['accuracy'].set_xlabel('Games')
+        self.axes['accuracy'].set_ylabel('Accuracy (%)')
+        self.axes['accuracy'].grid(True, linestyle='--', alpha=0.7)
+        self.axes['accuracy'].tick_params(axis='x', rotation=45)
 
-        # Set appropriate y-axis ticks for accuracy
-        min_acc = min(self.accuracy_history)
-        max_acc = max(self.accuracy_history)
-        acc_range = max_acc - min_acc
-        self.axes['accuracy'].set_ylim(min_acc - 0.1 * acc_range, max_acc + 0.1 * acc_range)
-        self.axes['accuracy'].set_yticks(sorted(set(self.accuracy_history)))
-        self.axes['accuracy'].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.1f}%'))
-
-        # Plot clicks history
-        self.axes['clicks'].plot(x_positions, self.correct_clicks_history, 'g-o', label='Correct')
-        self.axes['clicks'].plot(x_positions, self.wrong_clicks_history, 'r-o', label='Wrong')
-
-        # Set appropriate y-axis ticks for clicks
-        all_clicks = self.correct_clicks_history + self.wrong_clicks_history
-        min_clicks = min(all_clicks)
-        max_clicks = max(all_clicks)
-        clicks_range = max_clicks - min_clicks
-        self.axes['clicks'].set_ylim(min_clicks - 0.1 * clicks_range, max_clicks + 0.1 * clicks_range)
-        self.axes['clicks'].set_yticks(sorted(set(all_clicks)))
-        self.axes['clicks'].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x)}'))
-
-        # Plot response times
-        self.axes['time'].plot(x_positions, self.avg_time_history, 'b-o', label='Average')
-        self.axes['time'].plot(x_positions, self.fastest_time_history, 'g-o', label='Fastest')
-        self.axes['time'].plot(x_positions, self.slowest_time_history, 'r-o', label='Slowest')
-
-        # Set appropriate y-axis ticks for time
-        all_times = (self.avg_time_history + self.fastest_time_history +
-                     self.slowest_time_history)
-        min_time = min(all_times)
-        max_time = max(all_times)
-        time_range = max_time - min_time
-
-        # Calculate step size for ticks to avoid overcrowding
-        tick_count = 6  # Desired number of ticks
-        step = time_range / (tick_count - 1)
-        tick_values = [min_time + i * step for i in range(tick_count)]
-
-        # Set y-axis limits with some padding
-        self.axes['time'].set_ylim(min_time - 0.1 * time_range,
-                                   max_time + 0.1 * time_range)
-
-        # Set custom ticks and format them
-        self.axes['time'].set_yticks(tick_values)
-        self.axes['time'].yaxis.set_major_formatter(
-            plt.FuncFormatter(lambda x, p: f'{x:.2f}s'))
-
-        # Remove the right and top spines
-        self.axes['time'].spines['right'].set_visible(False)
-        self.axes['time'].spines['top'].set_visible(False)
-
-        # Add legend
-        self.axes['time'].legend()
-
-        # Add grid
-        self.axes['time'].grid(True, linestyle='--', alpha=0.7)
-
-        # Common settings for all plots
-        for name, ax in self.axes.items():
-            # Configure x-axis
-            ax.set_xticks(x_positions)
-            ax.set_xticklabels(x_labels, rotation=45)
-
-            # Add grid
-            ax.grid(True, linestyle='--', alpha=0.7)
-
-            # Set labels and title
-            ax.set_xlabel('Games')
-            title_map = {
-                'score': 'Score History',
-                'accuracy': 'Accuracy History',
-                'clicks': 'Clicks History',
-                'time': 'Response Times'
-            }
-            ax.set_title(title_map[name], pad=15)
-
-        # Add legends where needed
+        # Clicks History
+        self.axes['clicks'].plot(x_labels, self.correct_clicks_history, 'g-o', label='Correct')
+        self.axes['clicks'].plot(x_labels, self.wrong_clicks_history, 'r-o', label='Wrong')
+        self.axes['clicks'].set_title('Clicks History')
+        self.axes['clicks'].set_xlabel('Games')
+        self.axes['clicks'].set_ylabel('Number of Clicks')
         self.axes['clicks'].legend()
+        self.axes['clicks'].grid(True, linestyle='--', alpha=0.7)
+        self.axes['clicks'].tick_params(axis='x', rotation=45)
+
+        # Response Times
+        self.axes['time'].plot(x_labels, self.avg_time_history, 'b-o', label='Average')
+        self.axes['time'].plot(x_labels, self.fastest_time_history, 'g-o', label='Fastest')
+        self.axes['time'].plot(x_labels, self.slowest_time_history, 'r-o', label='Slowest')
+        self.axes['time'].set_title('Response Times')
+        self.axes['time'].set_xlabel('Games')
+        self.axes['time'].set_ylabel('Time (seconds)')
         self.axes['time'].legend()
+        self.axes['time'].grid(True, linestyle='--', alpha=0.7)
+        self.axes['time'].tick_params(axis='x', rotation=45)
 
         # Adjust layout
-        plt.tight_layout()
+        self.figure.tight_layout()
+
+    def reset_statistics(self):
+        """Resets all statistics to initial state."""
+        self.score_history = []
+        self.accuracy_history = []
+        self.correct_clicks_history = []
+        self.wrong_clicks_history = []
+        self.avg_time_history = []
+        self.fastest_time_history = []
+        self.slowest_time_history = []
+
+        # Clear the plots
+        if self.figure and self.axes:
+            for ax in self.axes.values():
+                ax.clear()
+                ax.set_title('No Data')
+                ax.grid(True, linestyle='--', alpha=0.7)
+            self.figure.tight_layout()
+
+    def _add_value_labels(self, ax, x_labels, values, fmt='{:.0f}'):
+        """Helper method to add value labels above points in the plot."""
+        for i, val in enumerate(values):
+            ax.text(i, val, fmt.format(val), ha='center', va='bottom')
 
     def _plot_with_style(self, ax, x_positions, x_labels, y_values, style, label):
         """Helper method for consistent plot styling."""
