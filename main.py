@@ -37,61 +37,46 @@ class ChessTrainer:
         self.initialize_components()
         self.bind_events()
 
+    # In main.py - Update both setup_window_layout and initialize_components methods
+
     def setup_window_layout(self):
         """Creates the main frame structure for the application."""
         self.root.configure(bg=self.ui_config.COLORS['background'])
         self.root.option_add('*Font', 'Helvetica 10')
 
-        # Set minimum window size
-        self.root.minsize(1000, 600)
+        # Configure root grid
+        self.root.grid_columnconfigure(0, weight=1)  # game frame
+        self.root.grid_columnconfigure(1, weight=1)  # right frame
 
-        # Create main container with grid weights
-        self.main_container = tk.Frame(self.root, bg=self.ui_config.COLORS['background'])
-        self.main_container.pack(expand=True, fill="both")
-        self.main_container.grid_columnconfigure(0, weight=1)
-        self.main_container.grid_columnconfigure(1, weight=1)
-        self.main_container.grid_rowconfigure(0, weight=1)
+        # Create main frames
+        self.game_frame = tk.Frame(self.root, bg=self.ui_config.COLORS['background'])
+        self.game_frame.grid(row=0, column=0, padx=10, sticky="nsew")
 
-        # Create main frames using grid
-        self.game_frame = tk.Frame(self.main_container, bg=self.ui_config.COLORS['background'])
-        self.game_frame.grid(row=0, column=0, sticky="nsew", padx=10)
+        self.right_frame = tk.Frame(self.root, bg=self.ui_config.COLORS['background'])
+        self.right_frame.grid(row=0, column=1, padx=20, sticky="nsew")
 
-        self.right_frame = tk.Frame(self.main_container, bg=self.ui_config.COLORS['background'])
-        self.right_frame.grid(row=0, column=1, sticky="nsew", padx=10)
-
-        # Configure inner frames to expand
-        self.game_frame.grid_rowconfigure(1, weight=1)  # For chessboard
+        # Configure game_frame grid
         self.game_frame.grid_columnconfigure(0, weight=1)
+        for i in range(4):  # For countdown, perspective, board, coordinate
+            self.game_frame.grid_rowconfigure(i, weight=0)
 
-        self.right_frame.grid_rowconfigure(0, weight=1)  # For graphs
-        self.right_frame.grid_columnconfigure(0, weight=1)
-
-        # Add perspective label
-        self.perspective_label = tk.Label(
-            self.game_frame,
-            text="View: White's perspective",
-            font=self.ui_config.FONTS['header'],
-            fg=self.ui_config.COLORS['primary'],
-            bg=self.ui_config.COLORS['background']
-        )
-        self.perspective_label.grid(row=0, column=0, pady=5)
-
-        # Add countdown frame
+        # Create countdown frame
         self.countdown_frame = tk.Frame(
             self.game_frame,
             bg=self.ui_config.COLORS['background']
         )
-        self.countdown_frame.grid(row=2, column=0, pady=10)
+        self.countdown_frame.grid(row=0, column=0, pady=(10, 5), sticky="ew")
+        self.countdown_frame.grid_columnconfigure(0, weight=1)
 
         # Create large countdown label
         self.countdown_label = tk.Label(
             self.countdown_frame,
-            text="",
+            text="30",
             font=("Helvetica", 48, "bold"),
             fg=self.ui_config.COLORS['accent'],
             bg=self.ui_config.COLORS['background']
         )
-        self.countdown_label.pack(expand=True)
+        self.countdown_label.grid(row=0, column=0)
 
     def initialize_components(self):
         """Initializes and configures all UI components."""
@@ -103,25 +88,43 @@ class ChessTrainer:
             fg=self.ui_config.COLORS['primary'],
             bg=self.ui_config.COLORS['background']
         )
-        self.perspective_label.grid(row=0, column=0, pady=5)
-
-        # Initialize coordinate display
-        self.coordinate_display = CoordinateDisplay(self.game_frame, self.ui_config)
-        self.coordinate_display.frame.grid(row=1, column=0, pady=5, sticky="ew")
+        self.perspective_label.grid(row=1, column=0, pady=5)
 
         # Initialize game board
         self.chessboard = ChessboardCanvas(self.game_frame, self.ui_config)
-        self.chessboard.canvas.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
+        self.chessboard.canvas.grid(row=2, column=0, pady=5)
+
+        # Create coordinate frame
+        self.coordinate_frame = tk.Frame(
+            self.game_frame,
+            bg=self.ui_config.COLORS['background']
+        )
+        self.coordinate_frame.grid(row=3, column=0, pady=(5, 10), sticky="ew")
+        self.coordinate_frame.grid_columnconfigure(0, weight=1)
+
+        # Create coordinate label
+        self.coordinate_label = tk.Label(
+            self.coordinate_frame,
+            text="Click Start to begin",
+            font=("Helvetica", 24, "bold"),
+            fg=self.ui_config.COLORS['accent'],
+            bg=self.ui_config.COLORS['background']
+        )
+        self.coordinate_label.grid(row=0, column=0)
+
+        # Configure right frame grid
+        self.right_frame.grid_columnconfigure(0, weight=1)
+        self.right_frame.grid_rowconfigure(1, weight=1)  # Make graphs expandable
 
         # Initialize statistics and controls
         self.stats_panel = StatisticsPanel(self.right_frame, self.ui_config)
-        self.stats_panel.frame.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
+        self.stats_panel.frame.grid(row=0, column=0, sticky="ew", pady=5)
 
         self.performance_graphs = PerformanceGraphs(self.right_frame)
-        self.performance_graphs.frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
+        self.performance_graphs.frame.grid(row=1, column=0, sticky="nsew")
 
         self.game_controls = GameControls(self.right_frame, self.ui_config)
-        self.game_controls.frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
+        self.game_controls.frame.grid(row=2, column=0, sticky="ew", pady=5)
 
         # Configure performance tracker with matplotlib figure
         self.performance_tracker.initialize_visualization(self.performance_graphs.get_figure())
@@ -133,16 +136,12 @@ class ChessTrainer:
             'toggle_coords': self.toggle_coordinates,
             'save': self.save_statistics,
             'load': self.load_statistics,
+            'unload': self.unload_statistics,  # Add this line
             'exit': self.exit_application
         }, self.ui_config)
 
-        # Configure weights for game_frame
-        self.game_frame.grid_rowconfigure(2, weight=1)  # Make chessboard expand
-        self.game_frame.grid_columnconfigure(0, weight=1)
-
-        # Configure weights for right_frame
-        self.right_frame.grid_rowconfigure(1, weight=1)  # Make graphs expand
-        self.right_frame.grid_columnconfigure(0, weight=1)
+        # Initial board draw
+        self.chessboard.draw_board(self.game_state.board.is_white_perspective)
 
     def bind_events(self):
         """Sets up event bindings for user interactions."""
@@ -156,7 +155,7 @@ class ChessTrainer:
 
         # Update UI for game start
         coordinate, col, row = self.game_state.board.generate_coordinate()
-        self.coordinate_display.update_text(coordinate)
+        self.coordinate_label.config(text=coordinate)
 
         # Initialize timing variables
         self.time_left = self.duration
@@ -165,7 +164,7 @@ class ChessTrainer:
         # Update countdown display
         self.countdown_label.config(
             text=str(self.time_left),
-            fg=self.ui_config.COLORS['accent']  # Start with normal color
+            fg=self.ui_config.COLORS['accent']
         )
 
         # Start timer
@@ -174,9 +173,6 @@ class ChessTrainer:
     def update_timer(self):
         """Updates the game timer and manages game state based on time."""
         if self.time_left > 0 and self.game_state.is_active:
-            # Update both the control timer and the large countdown
-            self.game_controls.update_timer(self.time_left)
-
             # Update countdown display with color coding
             if self.time_left <= 5:
                 color = '#dc2626'  # Red for last 5 seconds
@@ -192,8 +188,9 @@ class ChessTrainer:
 
             self.time_left -= 1
             self.root.after(1000, self.update_timer)
-        elif self.time_left <= 0:
+        else:
             self.countdown_label.config(text="Time's Up!")
+            self.coordinate_label.config(text="Game Over!")
             self.end_game()
 
     def end_game(self):
@@ -201,7 +198,7 @@ class ChessTrainer:
         Handles the end of a game session and updates performance statistics.
         """
         self.game_state.is_active = False
-        self.coordinate_display.update_text("Game Over!")
+        self.coordinate_label.config(text="Game Over!")
         self.game_controls.update_timer(0)
 
         # Calculate final statistics
@@ -216,9 +213,12 @@ class ChessTrainer:
         # Update statistics panel with final stats
         self.stats_panel.update_stats(final_stats)
 
-        # Update and display performance graphs
+        # Update and refresh performance graphs
         self.performance_tracker.update_visualizations()
         self.performance_graphs.refresh()
+
+        # Force an update of the UI
+        self.root.update_idletasks()
 
     def handle_board_click(self, event):
         """Processes user clicks on the chessboard."""
@@ -240,7 +240,7 @@ class ChessTrainer:
 
         # Generate new coordinate
         coordinate, col, row = self.game_state.board.generate_coordinate()
-        self.coordinate_display.update_text(coordinate)
+        self.coordinate_label.config(text=coordinate)
         self.last_coordinate_time = time.time()
 
     def record_wrong_click(self):
@@ -334,6 +334,36 @@ class ChessTrainer:
                     "Error",
                     f"Failed to load statistics: {str(e)}"
                 )
+
+    def unload_statistics(self):
+        """Resets all statistics to initial state."""
+        if tk.messagebox.askokcancel("Unload Statistics",
+                                     "Are you sure you want to unload all statistics? This will reset all your game history."):
+            try:
+                # Reset performance tracker
+                self.performance_tracker.reset_statistics()
+
+                # Reset session
+                self.game_session.reset()
+
+                # Update statistics panel with empty stats
+                empty_stats = {
+                    'score': 0,
+                    'correct': 0,
+                    'wrong': 0,
+                    'accuracy': 0,
+                    'avg_time': 0
+                }
+                self.stats_panel.update_stats(empty_stats)
+
+                # Update and refresh graphs
+                self.performance_tracker.update_visualizations()
+                self.performance_graphs.refresh()
+
+                tk.messagebox.showinfo("Success", "Statistics have been unloaded successfully!")
+
+            except Exception as e:
+                tk.messagebox.showerror("Error", f"Failed to unload statistics: {str(e)}")
 
     def exit_application(self):
         """Closes the application."""
