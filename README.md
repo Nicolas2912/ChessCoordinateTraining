@@ -2,7 +2,7 @@
 
 An advanced, interactive chess coordinates training application designed with a focus on precise timing, statistical analysis, and performance tracking. Built using Python and Tkinter, this application combines mathematical rigor with an intuitive user interface to help players master chess board coordinates.
 
-![Chess Coordinates Trainer - Visual Learning Tool](assets/images/UI_example_v01.png)
+![UI_example_v01](https://github.com/user-attachments/assets/cf942ca9-e3c1-4c92-be45-5a0a09e4151e)
 
 ## Table of Contents
 - [Core Features](#core-features)
