@@ -1,0 +1,24 @@
+{
+    "score_history": [
+        935
+    ],
+    "accuracy_history": [
+        100.0
+    ],
+    "correct_clicks_history": [
+        3
+    ],
+    "wrong_clicks_history": [
+        0
+    ],
+    "avg_time_history": [
+        1.6475497881571453
+    ],
+    "fastest_time_history": [
+        1.009979248046875
+    ],
+    "slowest_time_history": [
+        2.910768985748291
+    ],
+    "timestamp": "2024-12-01 00:06:10"
+}
