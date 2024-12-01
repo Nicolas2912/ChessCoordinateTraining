@@ -42,26 +42,52 @@ class ChessTrainer:
         self.root.configure(bg=self.ui_config.COLORS['background'])
         self.root.option_add('*Font', 'Helvetica 10')
 
-        # Create main frames
-        self.game_frame = tk.Frame(self.root, bg=self.ui_config.COLORS['background'])
-        self.game_frame.pack(side="left", padx=10, fill="both", expand=True)
+        # Set minimum window size
+        self.root.minsize(1000, 600)
 
-        self.right_frame = tk.Frame(self.root, bg=self.ui_config.COLORS['background'])
-        self.right_frame.pack(side="right", padx=20, fill="both", expand=True)
+        # Create main container with grid weights
+        self.main_container = tk.Frame(self.root, bg=self.ui_config.COLORS['background'])
+        self.main_container.pack(expand=True, fill="both")
+        self.main_container.grid_columnconfigure(0, weight=1)
+        self.main_container.grid_columnconfigure(1, weight=1)
+        self.main_container.grid_rowconfigure(0, weight=1)
 
-        # Add countdown display frame
+        # Create main frames using grid
+        self.game_frame = tk.Frame(self.main_container, bg=self.ui_config.COLORS['background'])
+        self.game_frame.grid(row=0, column=0, sticky="nsew", padx=10)
+
+        self.right_frame = tk.Frame(self.main_container, bg=self.ui_config.COLORS['background'])
+        self.right_frame.grid(row=0, column=1, sticky="nsew", padx=10)
+
+        # Configure inner frames to expand
+        self.game_frame.grid_rowconfigure(1, weight=1)  # For chessboard
+        self.game_frame.grid_columnconfigure(0, weight=1)
+
+        self.right_frame.grid_rowconfigure(0, weight=1)  # For graphs
+        self.right_frame.grid_columnconfigure(0, weight=1)
+
+        # Add perspective label
+        self.perspective_label = tk.Label(
+            self.game_frame,
+            text="View: White's perspective",
+            font=self.ui_config.FONTS['header'],
+            fg=self.ui_config.COLORS['primary'],
+            bg=self.ui_config.COLORS['background']
+        )
+        self.perspective_label.grid(row=0, column=0, pady=5)
+
+        # Add countdown frame
         self.countdown_frame = tk.Frame(
             self.game_frame,
-            bg=self.ui_config.COLORS['background'],
-            height=60  # Fixed height for consistent spacing
+            bg=self.ui_config.COLORS['background']
         )
-        self.countdown_frame.pack(fill='x', pady=10)
+        self.countdown_frame.grid(row=2, column=0, pady=10)
 
         # Create large countdown label
         self.countdown_label = tk.Label(
             self.countdown_frame,
             text="",
-            font=("Helvetica", 48, "bold"),  # Large, bold font
+            font=("Helvetica", 48, "bold"),
             fg=self.ui_config.COLORS['accent'],
             bg=self.ui_config.COLORS['background']
         )
@@ -77,19 +103,25 @@ class ChessTrainer:
             fg=self.ui_config.COLORS['primary'],
             bg=self.ui_config.COLORS['background']
         )
-        self.perspective_label.pack(pady=5)
+        self.perspective_label.grid(row=0, column=0, pady=5)
+
+        # Initialize coordinate display
+        self.coordinate_display = CoordinateDisplay(self.game_frame, self.ui_config)
+        self.coordinate_display.frame.grid(row=1, column=0, pady=5, sticky="ew")
 
         # Initialize game board
         self.chessboard = ChessboardCanvas(self.game_frame, self.ui_config)
-        self.coordinate_display = CoordinateDisplay(self.game_frame, self.ui_config)
-
-        # Draw initial board
-        self.chessboard.draw_board(self.game_state.board.is_white_perspective)
+        self.chessboard.canvas.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
 
         # Initialize statistics and controls
         self.stats_panel = StatisticsPanel(self.right_frame, self.ui_config)
+        self.stats_panel.frame.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
+
         self.performance_graphs = PerformanceGraphs(self.right_frame)
+        self.performance_graphs.frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
+
         self.game_controls = GameControls(self.right_frame, self.ui_config)
+        self.game_controls.frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
 
         # Configure performance tracker with matplotlib figure
         self.performance_tracker.initialize_visualization(self.performance_graphs.get_figure())
@@ -103,6 +135,14 @@ class ChessTrainer:
             'load': self.load_statistics,
             'exit': self.exit_application
         }, self.ui_config)
+
+        # Configure weights for game_frame
+        self.game_frame.grid_rowconfigure(2, weight=1)  # Make chessboard expand
+        self.game_frame.grid_columnconfigure(0, weight=1)
+
+        # Configure weights for right_frame
+        self.right_frame.grid_rowconfigure(1, weight=1)  # Make graphs expand
+        self.right_frame.grid_columnconfigure(0, weight=1)
 
     def bind_events(self):
         """Sets up event bindings for user interactions."""
