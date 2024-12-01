@@ -55,8 +55,8 @@ class ChessBoardState:
         Validates if a clicked position matches the target coordinate.
 
         Args:
-            click_x: X-coordinate of the click
-            click_y: Y-coordinate of the click
+            click_x: Column index of the clicked position (0-7)
+            click_y: Row index of the clicked position (0-7)
 
         Returns:
             bool: True if the click matches the target coordinate
@@ -64,15 +64,12 @@ class ChessBoardState:
         if not self.current_coordinate:
             return False
 
-        clicked_col = click_x // self._config.TILE_SIZE
-        clicked_row = click_y // self._config.TILE_SIZE
-
         target_col, target_row = self.current_coordinate
         if not self.is_white_perspective:
             target_col = self._config.GRID_SIZE - 1 - target_col
             target_row = self._config.GRID_SIZE - 1 - target_row
 
-        return (clicked_col, clicked_row) == (target_col, target_row)
+        return (click_x, click_y) == (target_col, target_row)
 
     def get_coordinate_notation(self, col: int, row: int) -> str:
         """
