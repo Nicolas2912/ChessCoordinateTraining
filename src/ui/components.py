@@ -356,10 +356,7 @@ class StatisticsPanel:
         for i in range(4):  # For the four statistics
             self.frame.grid_columnconfigure(i, weight=1)
 
-        # Initialize the statistics labels dictionary
         self.stat_labels = {}
-
-        # Create and store labels with consistent keys
         labels_config = [
             ("correct", "Correct: 0"),
             ("wrong", "Wrong: 0"),
@@ -368,7 +365,15 @@ class StatisticsPanel:
         ]
 
         for col, (key, text) in enumerate(labels_config):
-            self._create_label(config, key, text, col)
+            label = tk.Label(
+                self.frame,
+                text=text,
+                font=config.FONTS['normal'],
+                fg=config.COLORS['primary'],
+                bg=config.COLORS['background']
+            )
+            label.grid(row=0, column=col, padx=5)
+            self.stat_labels[key] = label
 
         # Create score label
         self.score_label = tk.Label(
@@ -446,7 +451,6 @@ class GameControls:
         self.frame.grid_columnconfigure(0, weight=1)
         self.button_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)  # Equal weight for all buttons
 
-
     def create_buttons(self, commands: dict, config: UIConfig) -> None:
         """Creates and configures control buttons with specified commands."""
         button_configs = [
@@ -455,6 +459,7 @@ class GameControls:
             {"text": "Show Coordinates", "command": commands.get('toggle_coords'), "color": config.COLORS['accent']},
             {"text": "Save Stats", "command": commands.get('save'), "color": config.COLORS['accent']},
             {"text": "Load Stats", "command": commands.get('load'), "color": config.COLORS['accent']},
+            {"text": "Unload Stats", "command": commands.get('unload'), "color": config.COLORS['accent']},
             {"text": "Exit", "command": commands.get('exit'), "color": config.COLORS['error']}
         ]
 
@@ -480,8 +485,7 @@ class GameControls:
                 button.grid(row=0, column=i, padx=2, sticky="ew")
 
     def update_timer(self, time_left: int) -> None:
-        """
-        Updates the timer display during gameplay.
+        """Updates the timer display.
 
         Args:
             time_left: Remaining time in seconds
@@ -513,42 +517,33 @@ class PerformanceGraphs:
     """Matplotlib-based performance visualization panel."""
 
     def __init__(self, parent: tk.Widget):
-        # Create a frame to hold the canvas
         self.frame = tk.Frame(parent)
         self.frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        # Configure grid weights
-        self.frame.grid_rowconfigure(0, weight=1)
-        self.frame.grid_columnconfigure(0, weight=1)
-
-        # Create figure with tight layout
-        self.fig = plt.figure(constrained_layout=True)
-
-        # Create GridSpec for better subplot management
-        self.gs = self.fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
+        # Create figure with subplots
+        self.fig = plt.figure(figsize=(8, 6))
 
         # Create subplots
-        self.axes = {
-            'score': self.fig.add_subplot(self.gs[0, 0]),
-            'accuracy': self.fig.add_subplot(self.gs[0, 1]),
-            'clicks': self.fig.add_subplot(self.gs[1, 0]),
-            'time': self.fig.add_subplot(self.gs[1, 1])
-        }
+        self.ax_score = self.fig.add_subplot(221)
+        self.ax_accuracy = self.fig.add_subplot(222)
+        self.ax_clicks = self.fig.add_subplot(223)
+        self.ax_time = self.fig.add_subplot(224)
 
-        # Style configuration
-        for ax in self.axes.values():
+        # Setup base styling
+        for ax in [self.ax_score, self.ax_accuracy, self.ax_clicks, self.ax_time]:
             ax.tick_params(labelsize=8)
             ax.title.set_fontsize(10)
             ax.xaxis.label.set_fontsize(8)
             ax.yaxis.label.set_fontsize(8)
 
-        # Create canvas with dynamic sizing
+        # Create canvas
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas_widget = self.canvas.get_tk_widget()
         self.canvas_widget.grid(row=0, column=0, sticky="nsew")
 
-        # Bind resize event
-        self.frame.bind('<Configure>', self._on_resize)
+        # Configure frame grid
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_rowconfigure(0, weight=1)
 
     def _on_resize(self, event):
         """Handle window resize events."""
@@ -564,4 +559,6 @@ class PerformanceGraphs:
 
     def refresh(self) -> None:
         """Refreshes the graph display."""
+        self.fig.tight_layout()
         self.canvas.draw()
+        self.canvas_widget.update()
