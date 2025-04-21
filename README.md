@@ -170,34 +170,3 @@ python -m pip install -e .
    python -m unittest tests/test_integration.py
    ```
 
-### Coverage
-- Core game logic: 95%+ coverage
-- UI components: 90%+ coverage
-- Integration scenarios: 85%+ coverage
-
-## Contributing
-
-### Development Setup
-1. Fork the repository
-2. Create a feature branch
-3. Implement changes with tests
-4. Submit pull request
-
-### Code Style
-- Use Black for formatting
-- Maintain docstring coverage
-- Follow type hinting conventions
-- Keep cyclomatic complexity low
-
-### Pull Request Process
-1. Update documentation
-2. Add unit tests
-3. Ensure CI passes
-4. Request code review
-
----
-
-## Acknowledgments
-- Chess coordinate training methodology
-- Performance tracking algorithms
-- UI/UX design principles
