@@ -1,14 +1,10 @@
 import tkinter as tk
 import time
-from ChessCoordinateTraining.src.core.game_logic import GameState, GameConfig
-from ChessCoordinateTraining.src.core.stats import GameSession, PerformanceTracker
-from ChessCoordinateTraining.src.ui.components import (
-    UIConfig,
-    ChessboardCanvas,
-    CoordinateDisplay,
-    StatisticsPanel,
-    GameControls,
-    PerformanceGraphs
+from src.core.game_logic import GameState, GameConfig
+from src.core.stats import GameSession, PerformanceTracker
+from src.ui.components import (
+    UIConfig, ChessboardCanvas, CoordinateDisplay,
+    StatisticsPanel, GameControls, PerformanceGraphs
 )
 
 
